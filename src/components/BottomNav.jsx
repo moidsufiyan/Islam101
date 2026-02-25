@@ -16,7 +16,7 @@ const BottomNav = () => {
 
     return (
         <nav className="fixed bottom-0 left-0 right-0 z-50">
-            {}
+            { }
             <div className="absolute inset-0 bg-gradient-to-t from-[#070b14] via-[#070b14]/80 to-transparent pointer-events-none -top-16" />
 
             <div className="relative glass-premium border-t border-white/[0.08] px-2 pb-6 pt-3">
@@ -31,16 +31,15 @@ const BottomNav = () => {
                                 whileTap={{ scale: 0.85 }}
                                 className="flex flex-col items-center gap-1.5 p-2 relative flex-1"
                             >
-                                {}
+                                { }
                                 {isActive && (
                                     <motion.div
                                         layoutId="nav-pill"
                                         className="absolute inset-0 bg-white/[0.08] border border-white/[0.05] rounded-2xl"
                                         transition={{
-                                            type: 'spring',
-                                            stiffness: 400,
-                                            damping: 25,
-                                            mass: 0.8
+                                            type: 'tween',
+                                            duration: 0.2,
+                                            ease: 'easeOut',
                                         }}
                                     />
                                 )}
@@ -54,7 +53,7 @@ const BottomNav = () => {
                                     />
                                 </div>
 
-                                {}
+                                { }
                             </motion.button>
                         );
                     })}

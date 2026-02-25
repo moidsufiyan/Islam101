@@ -68,11 +68,11 @@ const formatTime = (t) => {
     return `${String(h12).padStart(2, '0')}:${String(m).padStart(2, '0')} ${period}`;
 };
 
-const springTransition = { type: 'spring', stiffness: 350, damping: 25, mass: 0.8 };
+const springTransition = { type: 'tween', duration: 0.25, ease: 'easeOut' };
 
 const containerVariants = {
     hidden: { opacity: 0 },
-    visible: { opacity: 1, transition: { staggerChildren: 0.1 } }
+    visible: { opacity: 1, transition: { staggerChildren: 0.06 } }
 };
 
 const itemVariants = {

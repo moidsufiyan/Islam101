@@ -19,17 +19,15 @@ import Solutions from './pages/Solutions';
 
 
 const pageVariants = {
-  initial: { opacity: 0, y: 20, scale: 0.97, filter: 'blur(8px)' },
-  animate: { opacity: 1, y: 0, scale: 1, filter: 'blur(0px)' },
-  exit: { opacity: 0, y: -20, scale: 0.97, filter: 'blur(8px)' },
+  initial: { opacity: 0, y: 12 },
+  animate: { opacity: 1, y: 0 },
+  exit: { opacity: 0, y: -8 },
 };
 
-
 const pageTransition = {
-  type: 'spring',
-  stiffness: 260,
-  damping: 25,
-  mass: 1,
+  type: 'tween',
+  duration: 0.2,
+  ease: 'easeOut',
 };
 
 
@@ -83,7 +81,7 @@ function App() {
 
   return (
     <Router>
-      {}
+      { }
       <div className="font-sans min-h-screen relative bg-[#070b14] text-slate-100">
         <AmbientBackground />
 
@@ -91,7 +89,7 @@ function App() {
         <div className="relative z-10 w-full min-h-[100dvh]">
           <AnimatePresence mode="wait">
             {!madhab ? (
-              <motion.div key="onboarding" initial={{ opacity: 0, filter: 'blur(10px)' }} animate={{ opacity: 1, filter: 'blur(0px)' }} exit={{ opacity: 0, scale: 1.05 }} transition={{ duration: 0.5 }}>
+              <motion.div key="onboarding" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}>
                 <Onboarding />
               </motion.div>
             ) : (

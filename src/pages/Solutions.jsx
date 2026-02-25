@@ -15,16 +15,16 @@ const categoryEmoji = {
     'Food': '🍽️', 'Daily Life': '💼', 'Spirituality': '🤲',
 };
 
-const springTransition = { type: 'spring', stiffness: 350, damping: 25, mass: 0.8 };
+const springTransition = { type: 'tween', duration: 0.25, ease: 'easeOut' };
 
 const containerVariants = {
     hidden: { opacity: 0 },
-    visible: { opacity: 1, transition: { staggerChildren: 0.1 } }
+    visible: { opacity: 1, transition: { staggerChildren: 0.06 } }
 };
 
 const itemVariants = {
-    hidden: { opacity: 0, y: 15, scale: 0.98 },
-    visible: { opacity: 1, y: 0, scale: 1, transition: springTransition }
+    hidden: { opacity: 0, y: 10 },
+    visible: { opacity: 1, y: 0, transition: springTransition }
 };
 
 const Solutions = () => {

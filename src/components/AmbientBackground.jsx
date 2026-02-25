@@ -1,57 +1,20 @@
 import React from 'react';
-import { motion } from 'framer-motion';
 
 const AmbientBackground = () => {
     return (
         <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none bg-[#070b14]">
-            {}
-            <motion.div
-                className="absolute -top-40 -right-40 w-96 h-96 bg-teal-500/10 rounded-full blur-[100px]"
-                animate={{
-                    x: [0, 30, 0],
-                    y: [0, -30, 0],
-                    scale: [1, 1.1, 1],
-                    opacity: [0.3, 0.5, 0.3],
-                }}
-                transition={{
-                    duration: 12,
-                    repeat: Infinity,
-                    ease: "easeInOut",
-                }}
+            <div
+                className="absolute -top-40 -right-40 w-96 h-96 bg-teal-500/10 rounded-full blur-[100px] animate-float will-change-transform"
             />
 
-            {}
-            <motion.div
-                className="absolute -bottom-40 -left-20 w-80 h-80 bg-violet-500/10 rounded-full blur-[100px]"
-                animate={{
-                    x: [0, -40, 0],
-                    y: [0, 40, 0],
-                    scale: [1, 1.2, 1],
-                    opacity: [0.2, 0.4, 0.2],
-                }}
-                transition={{
-                    duration: 15,
-                    repeat: Infinity,
-                    ease: "easeInOut",
-                    delay: 2,
-                }}
+            <div
+                className="absolute -bottom-40 -left-20 w-80 h-80 bg-violet-500/10 rounded-full blur-[100px] animate-float-delayed will-change-transform"
             />
 
-            {}
-            <motion.div
-                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-lg h-96 bg-blue-500/[0.03] rounded-full blur-[120px]"
-                animate={{
-                    scale: [1, 1.2, 1],
-                    opacity: [0.3, 0.5, 0.3],
-                }}
-                transition={{
-                    duration: 20,
-                    repeat: Infinity,
-                    ease: "easeInOut",
-                }}
+            <div
+                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-lg h-96 bg-blue-500/[0.03] rounded-full blur-[120px] animate-pulse-slow will-change-transform"
             />
 
-            {}
             <div
                 className="absolute inset-0 opacity-[0.02] mix-blend-overlay"
                 style={{
@@ -63,4 +26,3 @@ const AmbientBackground = () => {
 };
 
 export default AmbientBackground;
-

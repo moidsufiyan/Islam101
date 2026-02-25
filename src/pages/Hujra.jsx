@@ -20,7 +20,7 @@ const guidedResponses = [
     }
 ];
 
-const springTransition = { type: 'spring', stiffness: 350, damping: 25, mass: 0.8 };
+const springTransition = { type: 'tween', duration: 0.25, ease: 'easeOut' };
 
 const Hujra = () => {
     const [tone, setTone] = useState('brother');
