@@ -64,12 +64,15 @@ const Hujra = () => {
             messages,
             temperature: 0.7,
             max_tokens: 1024,
+            stream: true,
         };
     };
 
     const fetchAIResponse = async (userMessage) => {
         setIsTyping(true);
         setError(null);
+
+        const assistantMsgId = Date.now();
 
         try {
             const payload = buildConversationPayload(userMessage);
@@ -88,33 +91,95 @@ const Hujra = () => {
                 throw new Error(errData?.error?.message || `API error: ${res.status}`);
             }
 
-            const data = await res.json();
-            const responseText = data?.choices?.[0]?.message?.content;
+            setMessages(prev => [...prev, {
+                id: assistantMsgId,
+                sender: 'assistant',
+                text: '',
+            }]);
 
-            if (!responseText) {
+            const reader = res.body.getReader();
+            const decoder = new TextDecoder();
+            let fullText = '';
+            let displayedText = '';
+            let buffer = '';
+            const charQueue = [];
+            let streamDone = false;
+
+            const typewriterPromise = new Promise((resolve) => {
+                const interval = setInterval(() => {
+                    if (charQueue.length > 0) {
+                        const charsToShow = Math.min(2, charQueue.length);
+                        for (let i = 0; i < charsToShow; i++) {
+                            displayedText += charQueue.shift();
+                        }
+                        const currentText = displayedText;
+                        setMessages(prev =>
+                            prev.map(msg =>
+                                msg.id === assistantMsgId
+                                    ? { ...msg, text: currentText }
+                                    : msg
+                            )
+                        );
+                    } else if (streamDone) {
+                        clearInterval(interval);
+                        resolve();
+                    }
+                }, 20);
+            });
+
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+
+                buffer += decoder.decode(value, { stream: true });
+                const lines = buffer.split('\n');
+                buffer = lines.pop() || '';
+
+                for (const line of lines) {
+                    const trimmed = line.trim();
+                    if (!trimmed || !trimmed.startsWith('data: ')) continue;
+
+                    const data = trimmed.slice(6);
+                    if (data === '[DONE]') break;
+
+                    try {
+                        const parsed = JSON.parse(data);
+                        const token = parsed?.choices?.[0]?.delta?.content;
+                        if (token) {
+                            fullText += token;
+                            for (const ch of token) {
+                                charQueue.push(ch);
+                            }
+                        }
+                    } catch {
+                    }
+                }
+            }
+
+            streamDone = true;
+            await typewriterPromise;
+
+            if (!fullText) {
                 throw new Error('Empty response from the server.');
             }
 
             conversationRef.current.push({ role: 'user', text: userMessage });
-            conversationRef.current.push({ role: 'model', text: responseText });
+            conversationRef.current.push({ role: 'model', text: fullText });
 
             if (conversationRef.current.length > 20) {
                 conversationRef.current = conversationRef.current.slice(-16);
             }
-
-            setMessages(prev => [...prev, {
-                id: Date.now(),
-                sender: 'assistant',
-                text: responseText,
-            }]);
         } catch (err) {
             console.error('Groq API Error:', err);
             setError(err.message);
-            setMessages(prev => [...prev, {
-                id: Date.now(),
-                sender: 'error',
-                text: err.message,
-            }]);
+            setMessages(prev => {
+                const filtered = prev.filter(msg => msg.id !== assistantMsgId || msg.text);
+                return [...filtered, {
+                    id: Date.now(),
+                    sender: 'error',
+                    text: err.message,
+                }];
+            });
         } finally {
             setIsTyping(false);
         }
