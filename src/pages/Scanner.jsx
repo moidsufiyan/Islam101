@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { createWorker } from 'tesseract.js';
+import { userAPI } from '../utils/api';
 import { analyzeIngredients } from '../data/haramIngredients';
 import {
     Camera, Scan, AlertTriangle, CheckCircle2, X, ShieldCheck,
@@ -32,6 +33,18 @@ const Scanner = () => {
     const handleCapture = (e) => {
         const file = e.target.files[0];
         if (!file) return;
+
+        // File size validation (5MB max)
+        if (file.size > 5 * 1024 * 1024) {
+            alert('Image must be under 5MB');
+            return;
+        }
+
+        // Revoke previous blob URL before creating a new one to prevent memory leaks
+        if (imagePreview) {
+            URL.revokeObjectURL(imagePreview);
+        }
+
         setImage(file);
         setImagePreview(URL.createObjectURL(file));
         setResults(null);
@@ -66,6 +79,13 @@ const Scanner = () => {
 
             const analysis = analyzeIngredients(text);
             setResults(analysis);
+            
+            // Increment the user's scan count in the database
+            try {
+                await userAPI.recordScan();
+            } catch (scanErr) {
+                console.error('Could not record scan stat:', scanErr);
+            }
         } catch (err) {
             console.error('OCR Error:', err);
             setProgressLabel('Error processing image. Try again.');
@@ -75,6 +95,9 @@ const Scanner = () => {
     };
 
     const handleReset = () => {
+        if (imagePreview) {
+            URL.revokeObjectURL(imagePreview);
+        }
         setImage(null);
         setImagePreview(null);
         setResults(null);
