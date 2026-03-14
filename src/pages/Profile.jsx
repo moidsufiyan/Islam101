@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { useMadhabStore } from '../store/useMadhabStore';
+import { useAuthStore } from '../store/useAuthStore';
 import { UserRound, Settings, LogOut, ChevronRight, Moon, Bell, BookOpen, Heart, Scan, MessageCircleHeart, Sparkles, Shield } from 'lucide-react';
 
 const springTransition = { type: 'tween', duration: 0.25, ease: 'easeOut' };
@@ -16,28 +16,30 @@ const itemVariants = {
 };
 
 const Profile = () => {
-    const madhab = useMadhabStore((state) => state.selectedMadhab);
-    const userName = useMadhabStore((state) => state.userName);
-    const clearMadhab = useMadhabStore((state) => state.clearMadhab);
+    const { user, logout, checkAuth } = useAuthStore();
+    const userName = user?.name || 'Seeker';
     const [notifications, setNotifications] = useState(true);
 
+    // Refresh user stats when profile mounts
+    useEffect(() => {
+        checkAuth();
+    }, []);
+
+    const scanCount = user?.stats?.scansDone || 0;
+    const msgCount = user?.stats?.chatMessages || 0;
+    
+    // Calculate days active
+    const daysActive = user?.createdAt 
+        ? Math.max(1, Math.floor((new Date() - new Date(user.createdAt)) / (1000 * 60 * 60 * 24)))
+        : 1;
+
     const stats = [
-        { icon: BookOpen, label: 'Verses Read', value: '147', color: 'text-teal-400', bg: 'bg-teal-500/15', border: 'border-teal-500/20' },
-        { icon: Heart, label: 'Days Active', value: '23', color: 'text-rose-400', bg: 'bg-rose-500/15', border: 'border-rose-500/20' },
-        { icon: MessageCircleHeart, label: 'Questions', value: '12', color: 'text-violet-400', bg: 'bg-violet-500/15', border: 'border-violet-500/20' },
-        { icon: Scan, label: 'Scans', value: '8', color: 'text-amber-400', bg: 'bg-amber-500/15', border: 'border-amber-500/20' },
+        { icon: BookOpen, label: 'Verses Read', value: '147', color: 'text-teal-400', bg: 'bg-teal-500/15', border: 'border-teal-500/20' }, // Placeholder for future feature
+        { icon: Heart, label: 'Days Active', value: daysActive.toString(), color: 'text-rose-400', bg: 'bg-rose-500/15', border: 'border-rose-500/20' },
+        { icon: MessageCircleHeart, label: 'Questions', value: msgCount.toString(), color: 'text-violet-400', bg: 'bg-violet-500/15', border: 'border-violet-500/20' },
+        { icon: Scan, label: 'Scans', value: scanCount.toString(), color: 'text-amber-400', bg: 'bg-amber-500/15', border: 'border-amber-500/20' },
     ];
 
-    const madhabName = {
-        'hanafi': 'Hanafi',
-        'shafii': "Shafi'i",
-        'salafi': 'Salafi',
-        'sufi-sunni': 'Sufi / Sunni',
-        'shia': 'Shia',
-        'ahle-hadees': 'Ahle Hadees',
-        'tableegh': 'Tableegh',
-        'universal': 'Universal',
-    };
 
     return (
         <motion.div initial="hidden" animate="visible" variants={containerVariants} className="min-h-screen gradient-bg px-5 pt-10 pb-32 relative">
@@ -67,7 +69,7 @@ const Profile = () => {
                 <h1 className="text-3xl font-black text-white mb-1.5 tracking-tight">{userName}</h1>
                 <div className="flex items-center gap-1.5 text-teal-400 text-xs font-bold uppercase tracking-widest bg-teal-500/10 px-3 py-1.5 rounded-full border border-teal-500/20 shadow-inner">
                     <Sparkles className="w-3.5 h-3.5" />
-                    {madhabName[madhab] || madhab || 'Not Selected'}
+                    Muslim • United Ummah
                 </div>
             </motion.div>
 
@@ -108,21 +110,7 @@ const Profile = () => {
                     </h2>
                 </div>
                 <div className="glass-premium rounded-[2rem] overflow-hidden border border-white/5 shadow-xl">
-                    {}
-                    <motion.div whileHover={{ backgroundColor: 'rgba(255,255,255,0.03)' }} className="p-5 flex items-center justify-between border-b border-white/[0.04] cursor-pointer">
-                        <div className="flex items-center gap-4">
-                            <div className="w-10 h-10 rounded-xl bg-teal-500/15 flex items-center justify-center border border-teal-500/20">
-                                <BookOpen className="w-4.5 h-4.5 text-teal-400" />
-                            </div>
-                            <span className="text-white font-semibold text-[15px]">School of Thought</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <span className="text-teal-400 font-bold text-sm">
-                                {madhabName[madhab] || madhab || 'Not Set'}
-                            </span>
-                            <ChevronRight className="w-4.5 h-4.5 text-slate-500" />
-                        </div>
-                    </motion.div>
+
 
                     {}
                     <div className="p-5 flex items-center justify-between border-b border-white/[0.04]">
@@ -179,11 +167,11 @@ const Profile = () => {
                 <motion.button
                     whileHover={{ scale: 1.02, backgroundColor: 'rgba(244,63,94,0.1)' }}
                     whileTap={{ scale: 0.98 }}
-                    onClick={clearMadhab}
+                    onClick={logout}
                     className="w-full glass-premium rounded-2xl border border-rose-500/30 p-4.5 flex items-center justify-center gap-2.5 text-rose-400 transition-all shadow-lg shadow-rose-500/5 group"
                 >
                     <LogOut className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
-                    <span className="font-bold text-[15px] tracking-wide">Reset Onboarding</span>
+                    <span className="font-bold text-[15px] tracking-wide">Logout</span>
                 </motion.button>
             </motion.div>
 
@@ -196,4 +184,3 @@ const Profile = () => {
 };
 
 export default Profile;
-

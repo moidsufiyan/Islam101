@@ -1,6 +1,8 @@
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useMadhabStore } from './store/useMadhabStore';
+import { useAuthStore } from './store/useAuthStore';
+import { useEffect } from 'react';
 
 
 
@@ -77,8 +79,12 @@ function AnimatedRoutes() {
 
 function App() {
   const madhab = useMadhabStore((state) => state.selectedMadhab);
+  const { token, checkAuth } = useAuthStore();
 
-
+  // Verify the JWT token is still valid on page load
+  useEffect(() => {
+    checkAuth();
+  }, []);
   return (
     <Router>
       { }
@@ -88,7 +94,7 @@ function App() {
 
         <div className="relative z-10 w-full min-h-[100dvh]">
           <AnimatePresence mode="wait">
-            {!madhab ? (
+            {(!madhab || !token) ? (
               <motion.div key="onboarding" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}>
                 <Onboarding />
               </motion.div>

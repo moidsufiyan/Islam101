@@ -174,7 +174,7 @@ const Home = () => {
                     </div>
                     <div>
                         <p className="text-white font-bold text-base tracking-tight mb-0.5">Solutions by Belief</p>
-                        <p className="text-[11px] font-medium text-slate-400">Answers filtered by your madhab</p>
+                        <p className="text-[11px] font-medium text-slate-400">Authentic guidance from the Quran & Sunnah</p>
                     </div>
                 </div>
                 <ChevronRight className="w-5 h-5 text-slate-400 group-hover:text-white transition-colors relative z-10" />
