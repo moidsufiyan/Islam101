@@ -12,17 +12,33 @@ const fetchPrayerTimes = async (city, country) => {
         if (data.code === 200) {
             const t = data.data.timings;
             return {
-                Fajr: t.Fajr,
-                Dhuhr: t.Dhuhr,
-                Asr: t.Asr,
-                Maghrib: t.Maghrib,
-                Isha: t.Isha,
-                Sunrise: t.Sunrise,
+                Fajr: t.Fajr, Dhuhr: t.Dhuhr, Asr: t.Asr,
+                Maghrib: t.Maghrib, Isha: t.Isha, Sunrise: t.Sunrise,
             };
         }
         return null;
     } catch (e) {
-        console.error('Failed to fetch prayer times:', e);
+        console.error('Failed to fetch prayer times by city:', e);
+        return null;
+    }
+};
+
+const fetchPrayerTimesByCoords = async (latitude, longitude) => {
+    try {
+        const res = await fetch(
+            `https://api.aladhan.com/v1/timings?latitude=${latitude}&longitude=${longitude}&method=2`
+        );
+        const data = await res.json();
+        if (data.code === 200) {
+            const t = data.data.timings;
+            return {
+                Fajr: t.Fajr, Dhuhr: t.Dhuhr, Asr: t.Asr,
+                Maghrib: t.Maghrib, Isha: t.Isha, Sunrise: t.Sunrise,
+            };
+        }
+        return null;
+    } catch (e) {
+        console.error('Failed to fetch prayer times by coords:', e);
         return null;
     }
 };
@@ -138,6 +154,7 @@ export const useScheduleStore = create(
             prayerTimes: null,
             scheduleBlocks: [],
             smartAlarms: [],
+            prayerTimesDate: null, // Tracks the date string of the cached times
             isLoading: false,
             error: null,
 
@@ -145,11 +162,27 @@ export const useScheduleStore = create(
                 set({ city, country, isLoading: true, error: null });
                 const times = await fetchPrayerTimes(city, country);
                 if (times) {
-                    set({ prayerTimes: times, isLoading: false });
+                    const todayDate = new Date().toLocaleDateString();
+                    set({ prayerTimes: times, prayerTimesDate: todayDate, isLoading: false });
                     const alarms = computeSmartAlarms(times, get().scheduleBlocks);
                     set({ smartAlarms: alarms });
                 } else {
                     set({ error: 'Failed to fetch prayer times. Check your city name.', isLoading: false });
+                }
+            },
+
+            setLocationByCoords: async (lat, lng) => {
+                set({ isLoading: true, error: null });
+                const times = await fetchPrayerTimesByCoords(lat, lng);
+                if (times) {
+                    // Update state without wiping city/country entirely, or we could reverse geocode
+                    // For now, let's just use coordinates and clear the text boxes
+                    const todayDate = new Date().toLocaleDateString();
+                    set({ city: 'Detected', country: 'Location', prayerTimes: times, prayerTimesDate: todayDate, isLoading: false });
+                    const alarms = computeSmartAlarms(times, get().scheduleBlocks);
+                    set({ smartAlarms: alarms });
+                } else {
+                    set({ error: 'Failed to fetch prayer times via GPS.', isLoading: false });
                 }
             },
 
@@ -170,11 +203,20 @@ export const useScheduleStore = create(
             },
 
             refreshPrayerTimes: async () => {
-                const { city, country } = get();
-                if (city && country) {
+                const { city, country, prayerTimesDate } = get();
+                const todayDate = new Date().toLocaleDateString();
+                
+                // If today's times are already cached, recompute alarms just in case, but skip fetch
+                if (prayerTimesDate === todayDate && get().prayerTimes) {
+                    const alarms = computeSmartAlarms(get().prayerTimes, get().scheduleBlocks);
+                    set({ smartAlarms: alarms });
+                    return;
+                }
+
+                if (city && country && city !== 'Detected') {
                     const times = await fetchPrayerTimes(city, country);
                     if (times) {
-                        set({ prayerTimes: times });
+                        set({ prayerTimes: times, prayerTimesDate: todayDate });
                         const alarms = computeSmartAlarms(times, get().scheduleBlocks);
                         set({ smartAlarms: alarms });
                     }
@@ -187,6 +229,8 @@ export const useScheduleStore = create(
                 city: state.city,
                 country: state.country,
                 scheduleBlocks: state.scheduleBlocks,
+                prayerTimes: state.prayerTimes,
+                prayerTimesDate: state.prayerTimesDate,
             }),
         }
     )

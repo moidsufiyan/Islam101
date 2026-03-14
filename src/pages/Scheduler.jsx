@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useScheduleStore } from '../store/useScheduleStore';
 import {
     Clock, MapPin, Plus, X, Trash2, Bell, AlertCircle, CheckCircle2,
-    Sun, CloudSun, Sunset, Moon, MoonStar, Loader2, Sparkles, ChevronRight
+    Sun, CloudSun, Sunset, Moon, MoonStar, Loader2, Sparkles, ChevronRight, Navigation
 } from 'lucide-react';
 
 const prayerIcons = { Fajr: Sun, Dhuhr: CloudSun, Asr: Sunset, Maghrib: Moon, Isha: MoonStar };
@@ -24,7 +24,7 @@ const itemVariants = {
 const Scheduler = () => {
     const {
         city, country, prayerTimes, scheduleBlocks, smartAlarms,
-        isLoading, error, setLocation, addBlock, removeBlock
+        isLoading, error, setLocation, setLocationByCoords, addBlock, removeBlock
     } = useScheduleStore();
 
     const [cityInput, setCityInput] = useState(city || '');
@@ -37,6 +37,26 @@ const Scheduler = () => {
     const handleFetchTimes = () => {
         if (!cityInput.trim() || !countryInput.trim()) return;
         setLocation(cityInput.trim(), countryInput.trim());
+    };
+
+    const handleDetectLocation = () => {
+        if (!navigator.geolocation) {
+            alert('Your browser does not support geolocation.');
+            return;
+        }
+
+        navigator.geolocation.getCurrentPosition(
+            (pos) => {
+                const { latitude, longitude } = pos.coords;
+                setLocationByCoords(latitude, longitude);
+                setCityInput('Detected');
+                setCountryInput('Location');
+            },
+            (err) => {
+                console.error("Geolocation error:", err);
+                alert('Please allow location access to use this feature.');
+            }
+        );
     };
 
     const handleAddBlock = () => {
@@ -86,19 +106,33 @@ const Scheduler = () => {
                             className="w-28 bg-black/20 border border-white/10 rounded-2xl px-4 py-3.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-teal-500/50 focus:ring-1 focus:ring-teal-500/20 transition-all font-medium"
                         />
                     </div>
-                    <motion.button
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        onClick={handleFetchTimes}
-                        disabled={isLoading || !cityInput.trim() || !countryInput.trim()}
-                        className="w-full bg-gradient-to-r from-teal-500 to-emerald-500 text-white font-bold py-3.5 rounded-2xl text-sm disabled:opacity-40 flex items-center justify-center gap-2 shadow-[0_5px_15px_rgba(20,184,166,0.3)] transition-all relative z-10"
-                    >
-                        {isLoading ? (
-                            <><Loader2 className="w-5 h-5 animate-spin" /> Fetching Times...</>
-                        ) : (
-                            <><Clock className="w-5 h-5" /> Get Prayer Times</>
-                        )}
-                    </motion.button>
+                    <div className="flex gap-3 relative z-10 w-full mb-4">
+                        <motion.button
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            onClick={handleFetchTimes}
+                            disabled={isLoading || !cityInput.trim() || !countryInput.trim()}
+                            className="flex-1 bg-gradient-to-r from-teal-500 to-emerald-500 text-white font-bold py-3.5 rounded-2xl text-sm disabled:opacity-40 flex items-center justify-center gap-2 shadow-[0_5px_15px_rgba(20,184,166,0.3)] transition-all"
+                        >
+                            {isLoading ? (
+                                <><Loader2 className="w-5 h-5 animate-spin" /> Fetching...</>
+                            ) : (
+                                <><Clock className="w-5 h-5" /> Get Times</>
+                            )}
+                        </motion.button>
+                        
+                        {/* New Auto-Detect Location Button */}
+                        <motion.button
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            onClick={handleDetectLocation}
+                            disabled={isLoading}
+                            className="w-16 flex-none bg-teal-500/10 text-teal-400 font-bold py-3.5 rounded-2xl border border-teal-500/30 flex items-center justify-center hover:bg-teal-500/20 disabled:opacity-40 shadow-inner group"
+                            title="Use my location"
+                        >
+                            <Navigation className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                        </motion.button>
+                    </div>
                     {error && (
                         <motion.div initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} className="flex items-center gap-2 mt-4 text-rose-400 text-xs font-semibold bg-rose-500/10 px-3 py-2 rounded-xl border border-rose-500/20 relative z-10">
                             <AlertCircle className="w-4 h-4 flex-none" />{error}
