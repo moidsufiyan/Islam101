@@ -44,7 +44,7 @@ const Onboarding = () => {
                 setFormError('Password must be at least 6 characters.');
                 return;
             }
-            const result = await register(name.trim(), email.trim(), password.trim(), 'unified');
+            const result = await register(name.trim(), email.trim(), password.trim());
             if (result.success) {
                 setUserName(name.trim());
                 completeOnboarding();

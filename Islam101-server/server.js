@@ -21,7 +21,7 @@ app.use(helmet());
 
 // ── CORS — allow only your React app to call this server ──────────────────────
 app.use(cors({
-    origin: process.env.CLIENT_URL || 'http://localhost:5173',
+    origin: process.env.CLIENT_URL ? process.env.CLIENT_URL.split(',') : 'http://localhost:5173',
     credentials: true
 }));
 
