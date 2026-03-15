@@ -1,9 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Send, ShieldCheck, Sparkles, Copy, Check, AlertCircle } from 'lucide-react';
-
-const GROQ_API_KEY = import.meta.env.VITE_GROQ_API_KEY;
-const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
+import { chatAPI } from '../utils/api';
 
 const BASE_SYSTEM_PROMPT = `You are "Hujra Assistant", an Islamic scholar and spiritual guide built into the Islam101 app.
 
@@ -34,6 +32,7 @@ const Hujra = () => {
     const chatEndRef = useRef(null);
     const inputRef = useRef(null);
     const conversationRef = useRef([]);
+    const abortControllerRef = useRef(null);
 
     const scrollToBottom = () => {
         chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -43,52 +42,51 @@ const Hujra = () => {
         scrollToBottom();
     }, [messages, isTyping]);
 
-    const buildConversationPayload = (userMessage) => {
+    // Cleanup: abort any in-flight request when the component unmounts
+    useEffect(() => {
+        return () => {
+            if (abortControllerRef.current) abortControllerRef.current.abort();
+        };
+    }, []);
+
+    const buildMessagesPayload = (userMessage) => {
         const systemPrompt = BASE_SYSTEM_PROMPT + (TONE_PROMPTS[tone] || TONE_PROMPTS.brother);
 
-        const messages = [
+        const msgs = [
             { role: 'system', content: systemPrompt }
         ];
 
         for (const msg of conversationRef.current) {
-            messages.push({
+            msgs.push({
                 role: msg.role === 'model' ? 'assistant' : msg.role,
                 content: msg.text
             });
         }
 
-        messages.push({ role: 'user', content: userMessage });
+        msgs.push({ role: 'user', content: userMessage });
 
-        return {
-            model: 'llama-3.3-70b-versatile',
-            messages,
-            temperature: 0.7,
-            max_tokens: 1024,
-            stream: true,
-        };
+        return msgs;
     };
 
     const fetchAIResponse = async (userMessage) => {
         setIsTyping(true);
         setError(null);
 
+        // Cancel any ongoing request before starting a new one
+        if (abortControllerRef.current) abortControllerRef.current.abort();
+        abortControllerRef.current = new AbortController();
+
         const assistantMsgId = Date.now();
 
         try {
-            const payload = buildConversationPayload(userMessage);
+            const messagesPayload = buildMessagesPayload(userMessage);
 
-            const res = await fetch(GROQ_API_URL, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${GROQ_API_KEY}`,
-                },
-                body: JSON.stringify(payload),
-            });
+            // Calls YOUR backend at /api/chat — API key stays on the server!
+            const res = await chatAPI.sendMessage(messagesPayload, abortControllerRef.current.signal);
 
             if (!res.ok) {
                 const errData = await res.json().catch(() => ({}));
-                throw new Error(errData?.error?.message || `API error: ${res.status}`);
+                throw new Error(errData?.message || errData?.error?.message || `API error: ${res.status}`);
             }
 
             setMessages(prev => [...prev, {
