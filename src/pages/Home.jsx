@@ -90,10 +90,10 @@ const Home = () => {
     const refreshPrayerTimes = useScheduleStore((state) => state.refreshPrayerTimes);
 
     useEffect(() => {
-        if (city && !apiTimes) {
+        if (city) {
             refreshPrayerTimes();
         }
-    }, [city, apiTimes, refreshPrayerTimes]);
+    }, [city, refreshPrayerTimes]);
 
     const currentDate = new Date();
     const hour = currentDate.getHours();

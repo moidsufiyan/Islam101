@@ -151,6 +151,7 @@ export const useScheduleStore = create(
         (set, get) => ({
             city: '',
             country: '',
+            coords: null, // Stores { lat, lng } if auto-detected
             prayerTimes: null,
             scheduleBlocks: [],
             smartAlarms: [],
@@ -159,7 +160,7 @@ export const useScheduleStore = create(
             error: null,
 
             setLocation: async (city, country) => {
-                set({ city, country, isLoading: true, error: null });
+                set({ city, country, coords: null, isLoading: true, error: null });
                 const times = await fetchPrayerTimes(city, country);
                 if (times) {
                     const todayDate = new Date().toLocaleDateString();
@@ -175,10 +176,8 @@ export const useScheduleStore = create(
                 set({ isLoading: true, error: null });
                 const times = await fetchPrayerTimesByCoords(lat, lng);
                 if (times) {
-                    // Update state without wiping city/country entirely, or we could reverse geocode
-                    // For now, let's just use coordinates and clear the text boxes
                     const todayDate = new Date().toLocaleDateString();
-                    set({ city: 'Detected', country: 'Location', prayerTimes: times, prayerTimesDate: todayDate, isLoading: false });
+                    set({ city: 'Detected', country: 'Location', coords: { lat, lng }, prayerTimes: times, prayerTimesDate: todayDate, isLoading: false });
                     const alarms = computeSmartAlarms(times, get().scheduleBlocks);
                     set({ smartAlarms: alarms });
                 } else {
@@ -220,6 +219,14 @@ export const useScheduleStore = create(
                         const alarms = computeSmartAlarms(times, get().scheduleBlocks);
                         set({ smartAlarms: alarms });
                     }
+                } else if (city === 'Detected' && get().coords) {
+                    const { lat, lng } = get().coords;
+                    const times = await fetchPrayerTimesByCoords(lat, lng);
+                    if (times) {
+                        set({ prayerTimes: times, prayerTimesDate: todayDate });
+                        const alarms = computeSmartAlarms(times, get().scheduleBlocks);
+                        set({ smartAlarms: alarms });
+                    }
                 }
             },
         }),
@@ -228,6 +235,7 @@ export const useScheduleStore = create(
             partialize: (state) => ({
                 city: state.city,
                 country: state.country,
+                coords: state.coords,
                 scheduleBlocks: state.scheduleBlocks,
                 prayerTimes: state.prayerTimes,
                 prayerTimesDate: state.prayerTimesDate,

@@ -1,4 +1,18 @@
-# Logs
+# ── Dependencies ─────────────────────────────────────
+node_modules
+Islam101-server/node_modules
+
+# ── Build output ──────────────────────────────────────
+dist
+dist-ssr
+
+# ── Environment variables (NEVER commit these) ────────
+.env
+.env.local
+.env.*.local
+Islam101-server/.env
+
+# ── Logs ─────────────────────────────────────────────
 logs
 *.log
 npm-debug.log*
@@ -7,12 +21,7 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
-*.local
-
-# Editor directories and files
+# ── Editor ───────────────────────────────────────────
 .vscode/*
 !.vscode/extensions.json
 .idea
@@ -23,7 +32,6 @@ dist-ssr
 *.sln
 *.sw?
 
-# Environment
-.env
-.env.local
-.env.*.local
+# ── PWA generated service worker (auto-generated) ────
+sw.js
+workbox-*.js

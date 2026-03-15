@@ -93,10 +93,10 @@ const detectLocation = () => {
 
 ---
 
-## 🔵 PHASE 3 — Progressive Web App (PWA) & Offline Mode
+## 🔵 PHASE 3 — Progressive Web App (PWA) & Offline Mode (COMPLETED)
 **Goal:** Allow users to "Install" Islam101 as an App and view prayer times offline.
 
-### Step 3.1 — Vite PWA Setup
+### Step 3.1 — Vite PWA Setup (COMPLETED)
 1.  **Install**: `npm install -D vite-plugin-pwa`
 2.  **Configure `vite.config.js`**:
     ```javascript
@@ -122,7 +122,7 @@ const detectLocation = () => {
     })
     ```
 
-### Step 3.2 — Offline Prayer Times Cache
+### Step 3.2 — Offline Prayer Times Cache (COMPLETED)
 Modify `useScheduleStore.js` to persist data in `localStorage`.
 - When an API call succeeds, save `data` and `timestamp`.
 - On app load, if `timestamp` is within the same day, use the cached data instead of fetching.
